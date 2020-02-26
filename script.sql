@@ -2,11 +2,11 @@ drop database if exists educato;
 
 create database educato;
 
+grant all privileges on educato.* to admin@'%' identified by 'system32';
+
+flush PRIVILEGES;
+
 use educato;
-
-grant all privileges on educato.* to admin@'%' identified by 'system32'; 
-
-flush privileges;
 
 create table usuario (
     id bigint not null auto_increment,
