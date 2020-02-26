@@ -7,8 +7,8 @@ $table = "usuario";
 try {
   $db = new PDO("mysql:host=localhost;dbname=$database", $user, $password);
   echo "<h2>USUARIOS</h2><ol>"; 
-  foreach($db->query("SELECT nombre FROM $table") as $row) {
-    echo "<li>" . $row['nombre'] . "</li>";
+  foreach($db->query("SELECT nombre, rol FROM $table") as $row) {
+    echo "<li>" . $row['nombre'] . ", rol: ". $row['rol'] ."</li>";
   }
   echo "</ol>";
 } catch (PDOException $e) {
