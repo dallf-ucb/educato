@@ -1,17 +1,12 @@
-<?php
-$user = "admin";
-$password = "system32";
-$database = "educato";
-$table = "usuario";
+<?php  
+error_reporting(E_ALL);
+ini_set('display_errors', TRUE);
+ini_set('display_startup_errors', TRUE);
 
-try {
-  $db = new PDO("mysql:host=localhost;dbname=$database", $user, $password);
-  echo "<h2>USUARIOS</h2><ol>"; 
-  foreach($db->query("SELECT nombre, rol FROM $table") as $row) {
-    echo "<li>" . $row['nombre'] . ", rol: ". $row['rol'] ."</li>";
-  }
-  echo "</ol>";
-} catch (PDOException $e) {
-    print "Error!: " . $e->getMessage() . "<br/>";
-    die();
-}
+define('ROOT', str_replace("index.php", "", $_SERVER["SCRIPT_FILENAME"]));
+require('app/core.php');
+
+$dispatch = new dispatcher();
+$dispatch->dispatch();
+
+?>

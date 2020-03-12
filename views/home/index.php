@@ -1,0 +1,1 @@
+<h1>Bienvenido a educato!</h1>
