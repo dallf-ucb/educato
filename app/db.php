@@ -1,12 +1,9 @@
 <?php
-
 class db
 {
     private static $dbi = null;
-
     private function __construct() {
     }
-
     public static function getDb() {
         if(is_null(self::$dbi)) {
             $DATABASE_HOST = 'localhost';

@@ -4,6 +4,7 @@
         var $vars = [];
         var $layout = "";
         var $body = "";
+        var $model = null;
 
         function set($d)
         {

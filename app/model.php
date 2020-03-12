@@ -1,83 +1,73 @@
 <?php
-
 class model
 { 
-    public static $_db; 
-    protected static $_stmt = array(); 
-    private static $_tableColumns = array(); 
-    protected static $_primary_column_name = 'id'; 
-    protected static $_tableName = '_the_db_table_name_';  
+    public $db; 
+    private $columns = array(); 
+    protected $stmt = array(); 
+    protected $pk_column = 'id'; 
+    protected $table = '_the_db_table_name_';  
 
     public function __construct()
     {
-        static::getFieldnames(); 
+        $this->connectDb();
+        $this->getFieldnames(); 
     }
     
-    public static function connectDb()
+    public function connectDb()
     {
-        static::$_db = db::getDb();
+        $this->db = db::getDb();
     }
     
-    protected static function getFieldnames()
+    protected function getFieldnames()
     {
-        $class = get_called_class();
-        static::$_tableName = $class;
-        if (!isset(self::$_tableColumns[$class])) {
-            $st = static::execute('DESCRIBE ' . $class);
-            self::$_tableColumns[$class] = $st->fetchAll(\PDO::FETCH_COLUMN);
+        $class = str_replace("m_", "", get_called_class());
+        $this->table = $class;
+        if (!isset($this->columns[$class])) {
+            $st = $this->execute('DESCRIBE ' . $class);
+            $this->columns[$class] = $st->fetchAll(\PDO::FETCH_COLUMN);
         }
-        return self::$_tableColumns[$class];
+        return $this->columns[$class];
     }
     
-    public function toArray()
+    public function count()
     {
-        $a = array();
-        foreach (get_class_vars(static::$_tableName) as $fieldname) {
-            $a[$fieldname] = $this->$fieldname;
-        }
-        return $a;
-    }
-
-    static public function getById($id)
-    {
-        return static::fetchOneWhere(static::$_primary_column_name . ' = ?', array($id));
-    }
-    
-    static public function count()
-    {
-        $st = static::execute('SELECT COUNT(*) FROM ' . static::$_tableName);
+        $sql = 'SELECT COUNT(*) FROM ' . $this->table;
+        $st = $this->execute($sql);
         return (int)$st->fetchColumn(0);
     }
     
-    static public function countAllWhere($SQLfragment = '', $params = array())
+    public function countAllWhere($SQLfragment = '', $params = array())
     {
         $SQLfragment = $SQLfragment ? ' WHERE ' . $SQLfragment : $SQLfragment;
-        $st = static::execute('SELECT COUNT(*) FROM ' . static::$_tableName . $SQLfragment, $params);
+        $st = $this->execute('SELECT COUNT(*) FROM ' . $this->table. $SQLfragment, $params);
         return (int)$st->fetchColumn(0);
     }
     
-    static public function fetchWhere($SQLfragment = '', $params = array(), $limitOne = false)
+    public function fetchWhere($SQLfragment = '', $params = array(), $limitOne = false)
     {
-        $SQLfragment ? ' WHERE ' . $SQLfragment : $SQLfragment;
-        $select = implode(", ", static::$_tableColumns[static::$_tableName]);
-        $st = static::execute(
-            'SELECT ' . $select . ' FROM ' . static::$_tableName . $SQLfragment . ($limitOne ? ' LIMIT 1' : ''),
+        $SQLfragment = $SQLfragment ? ' WHERE ' . $SQLfragment : $SQLfragment;
+        $cols = implode(", ", $this->columns[$this->table]);
+        $sql = 'SELECT ' . $cols . ' FROM ' . $this->table. $SQLfragment . ($limitOne ? ' LIMIT 1' : ''); 
+        echo $sql;
+        $st = $this->execute(
+            $sql,
             $params
         );
         $st->setFetchMode(\PDO::FETCH_ASSOC);
         if ($limitOne) {
-            $instance = new static::$_tableName();
+            $instance = new $this->table();
             foreach($st->fetch() as $key => $value) {
-                if (property_exists(static::$_tableName, $key))
+                if (property_exists($this->table, $key))
                     $instance->$key = $value;
             }
             return $instance;
         }
         $results = [];
         while ($row = $st->fetch()) {
-            $instance = new static::$_tableName();
+            $model = 'm_'. $this->table;
+            $instance = new $model();
             foreach($st->fetch() as $key => $value) {
-                if (property_exists(static::$_tableName, $key))
+                if (property_exists($model, $key))
                     $instance->$key = $value;
             }
             $results[] = $instance;
@@ -85,21 +75,21 @@ class model
         return $results;
     }
 
-    static public function fetchPagedWhere($SQLfragment = '', $page = 1, $records_per_page = 10)
+    public function fetchPagedWhere($SQLfragment = '', $page = 1, $records_per_page = 10)
     {
         $SQLfragment ? ' WHERE ' . $SQLfragment : $SQLfragment;
-        $select = implode(", ", static::$_tableColumns[static::$_tableName]);
+        $cols = implode(", ", $this->columns[$this->table]);
         $params = array(($page - 1) * $records_per_page, $records_per_page);
-        $st = static::execute(
-            'SELECT ' . $select . ' FROM ' . static::$_tableName . $SQLfragment . ' LIMIT ?,?',
+        $st = execute(
+            'SELECT ' . $cols . ' FROM ' . $this->table. $SQLfragment . ' LIMIT ?,?',
             $params
         );
         $st->setFetchMode(\PDO::FETCH_ASSOC);
         $results = [];
         while ($row = $st->fetch()) {
-            $instance = new static::$_tableName();
+            $instance = new $this->table();
             foreach($st->fetch() as $key => $value) {
-                if (property_exists(static::$_tableName, $key))
+                if (property_exists($this->table, $key))
                     $instance->$key = $value;
             }
             $results[] = $instance;
@@ -107,20 +97,15 @@ class model
         return $results;
     }
     
-    static public function fetchAllWhere($SQLfragment = '', $params = array())
+    public function fetchOneWhere($SQLfragment = '', $params = array())
     {
-        return static::fetchWhere($SQLfragment, $params, false);
+        return $this->fetchWhere($SQLfragment, $params, true);
     }
     
-    static public function fetchOneWhere($SQLfragment = '', $params = array())
+    public function deleteById($id)
     {
-        return static::fetchWhere($SQLfragment, $params, true);
-    }
-    
-    static public function deleteById($id)
-    {
-        $st = static::execute(
-            'DELETE FROM ' . static::$_tableName . ' WHERE ' . static::$_primary_column_name . ' = ? LIMIT 1',
+        $st = $this->execute(
+            'DELETE FROM ' . $this->table. ' WHERE ' . $this->pk_column . ' = ? LIMIT 1',
             array($id)
         );
         return ($st->rowCount() == 1);
@@ -128,13 +113,13 @@ class model
     
     public function delete()
     {
-        return self::deleteById($this->{static::$_primary_column_name});
+        return $this->deleteById($this->{$pk_column});
     }
     
-    static public function deleteAllWhere($where, $params = array())
+    public function deleteAllWhere($where, $params = array())
     {
-        $st = static::execute(
-            'DELETE FROM ' . static::$_tableName . ' WHERE ' . $where,
+        $st = $this->execute(
+            'DELETE FROM ' . $this->table. ' WHERE ' . $where,
             $params
         );
         return $st;
@@ -142,58 +127,58 @@ class model
 
     public function insert($autoTimestamp = true)
     {
-        $pk = static::$_primary_column_name;
+        $pk = $this->pk_column;
         $timeStr = gmdate('Y-m-d H:i:s');
-        if ($autoTimestamp && in_array('created_at', self::$_tableColumns[static::$_tableName])) {
+        if ($autoTimestamp && in_array('created_at', $this->columns[$_tableName])) {
             $this->created_at = $timeStr;
         }
-        if ($autoTimestamp && in_array('updated_at', self::$_tableColumns[static::$_tableName])) {
+        if ($autoTimestamp && in_array('updated_at', $this->columns[$this->table])) {
             $this->updated_at = $timeStr;
         }
         
         $set = $this->setString();
-        $query = 'INSERT INTO ' . static::$_tableName . ' SET ' . $set['sql'];
-        $st    = static::execute($query, $set['params']);
+        $query = 'INSERT INTO ' . $this->table. ' SET ' . $set['sql'];
+        $st = $this->execute($query, $set['params']);
         if ($st->rowCount() == 1) {
-            $this->{static::$_primary_column_name} = static::$_db->lastInsertId();
+            $this->{$pk} = $this->db->lastInsertId();
         }
         return ($st->rowCount() == 1);
     }
     
     public function update($autoTimestamp = true)
     {
-        if ($autoTimestamp && in_array('updated_at', static::getFieldnames())) {
+        if ($autoTimestamp && in_array('updated_at', getFieldnames())) {
             $this->updated_at = gmdate('Y-m-d H:i:s');
         }
         
         $set = $this->setString();
-        $query = 'UPDATE ' . static::$_tableName . ' SET ' . $set['sql'] . ' WHERE ' . static::$_primary_column_name . ' = ? LIMIT 1';
-        $set['params'][] = $this->{static::$_primary_column_name};
-        $st = static::execute(
+        $query = 'UPDATE ' . $this->table. ' SET ' . $set['sql'] . ' WHERE ' . $this->pk_column . ' = ? LIMIT 1';
+        $set['params'][] = $this->{$this->pk_column};
+        $st = execute(
             $query,
             $set['params']
         );
         return ($st->rowCount() == 1);
     }
     
-    public static function execute($query, $params = array())
+    public function execute($query, $params = array())
     {
-        $st = static::_prepare($query);
+        $st = $this->prepare($query);
         $st->execute($params);
         return $st;
     }
     
-    protected static function _prepare($query)
+    protected function prepare($query)
     {
-        if (!isset(static::$_stmt[$query])) { 
-            static::$_stmt[$query] = static::$_db->prepare($query);
+        if (!isset($this->stmt[$query])) { 
+            $this->stmt[$query] = $this->db->prepare($query);
         }
-        return static::$_stmt[$query];
+        return $this->stmt[$query];
     }
     
     public function save()
     {
-        if ($this->{static::$_primary_column_name}) {
+        if ($this->{$pk_column}) {
             return $this->update();
         } else {
             return $this->insert();
@@ -204,8 +189,8 @@ class model
     {
         $fragments = array();
         $params = [];
-        foreach (static::$_tableColumns[static::$_tableName] as $field) {
-            if ($field == static::$_primary_column_name) {
+        foreach ($this->columns[$this->pk_column] as $field) {
+            if ($field == $this->pk_column) {
                 continue;
             }
             if (isset($this->$field)) { 

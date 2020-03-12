@@ -24,20 +24,21 @@ class dispatcher
             $this->request->params = [];
         }
         require($file);
+        $controller = new $name();
 
-        $model = ROOT . 'models/' . $name . '.php';
+        $model = ROOT . 'models/m_' . $name . '.php';
         if (file_exists($model)) {
             require($model);
+            $model = 'm_' . $name;
+            $controller->model = new $model();
         }
-
-        $controller = new $name();
+        
         return $controller;
     }
 
     private function parse()
     {
         $url = trim($_SERVER["REQUEST_URI"]); 
-
         if ($url == "/")
         {
             $this->request->controller = "home";
@@ -52,7 +53,6 @@ class dispatcher
             $this->request->view = $explode_url[1];
             $this->request->params = array_slice($explode_url, 2);
         }
-
     }
 }
 ?>
