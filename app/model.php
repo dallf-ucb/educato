@@ -1,7 +1,7 @@
 <?php
 class model
 { 
-    public $db; 
+    protected $db; 
     private $columns = array(); 
     protected $stmt = array(); 
     protected $pk_column = 'id'; 
@@ -48,17 +48,17 @@ class model
         $SQLfragment = $SQLfragment ? ' WHERE ' . $SQLfragment : $SQLfragment;
         $cols = implode(", ", $this->columns[$this->table]);
         $sql = 'SELECT ' . $cols . ' FROM ' . $this->table. $SQLfragment . ($limitOne ? ' LIMIT 1' : ''); 
-        echo $sql;
         $st = $this->execute(
             $sql,
             $params
         );
         $st->setFetchMode(\PDO::FETCH_ASSOC);
         if ($limitOne) {
-            $instance = new $this->table();
-            foreach($st->fetch() as $key => $value) {
-                if (property_exists($this->table, $key))
-                    $instance->$key = $value;
+            $row = $st->fetch();
+            $model = 'm_'. $this->table;
+            $instance = new $model();
+            foreach($this->columns[$this->table] as $key) {
+                $instance->$key = $row[$key];
             }
             return $instance;
         }
@@ -66,31 +66,31 @@ class model
         while ($row = $st->fetch()) {
             $model = 'm_'. $this->table;
             $instance = new $model();
-            foreach($st->fetch() as $key => $value) {
-                if (property_exists($model, $key))
-                    $instance->$key = $value;
+            foreach($this->columns[$this->table] as $key) {
+                $instance->$key = $row[$key];
             }
             $results[] = $instance;
         }
         return $results;
     }
 
-    public function fetchPagedWhere($SQLfragment = '', $page = 1, $records_per_page = 10)
+    public function fetchPagedWhere($SQLfragment = '', $page = 1, $records_per_page = 10, $params = array())
     {
-        $SQLfragment ? ' WHERE ' . $SQLfragment : $SQLfragment;
+        $SQLfragment = $SQLfragment ? ' WHERE ' . $SQLfragment : $SQLfragment;
         $cols = implode(", ", $this->columns[$this->table]);
-        $params = array(($page - 1) * $records_per_page, $records_per_page);
-        $st = execute(
-            'SELECT ' . $cols . ' FROM ' . $this->table. $SQLfragment . ' LIMIT ?,?',
-            $params
+        $offset = ($page - 1) * $records_per_page; 
+        $limit = $records_per_page;
+        $sql = 'SELECT ' . $cols . ' FROM ' . $this->table.         $SQLfragment . ' LIMIT ' . $offset . ',' . $limit;
+        $st = $this->execute(
+            $sql, $params
         );
         $st->setFetchMode(\PDO::FETCH_ASSOC);
         $results = [];
-        while ($row = $st->fetch()) {
-            $instance = new $this->table();
-            foreach($st->fetch() as $key => $value) {
-                if (property_exists($this->table, $key))
-                    $instance->$key = $value;
+        while ($row = $st->fetch()) { 
+            $model = 'm_'. $this->table;
+            $instance = new $model();
+            foreach($this->columns[$this->table] as $key) {
+                $instance->$key = $row[$key];
             }
             $results[] = $instance;
         }
@@ -113,7 +113,7 @@ class model
     
     public function delete()
     {
-        return $this->deleteById($this->{$pk_column});
+        return $this->deleteById($this->{$this->pk_column});
     }
     
     public function deleteAllWhere($where, $params = array())
@@ -122,14 +122,20 @@ class model
             'DELETE FROM ' . $this->table. ' WHERE ' . $where,
             $params
         );
-        return $st;
+        return ($st->rowCount() >= 1);
+    }
+    
+    public function truncate(){
+        $st = $this->execute(
+            'TRUNCATE TABLE ' . $this->table
+        );
     }
 
     public function insert($autoTimestamp = true)
     {
         $pk = $this->pk_column;
         $timeStr = gmdate('Y-m-d H:i:s');
-        if ($autoTimestamp && in_array('created_at', $this->columns[$_tableName])) {
+        if ($autoTimestamp && in_array('created_at', $this->columns[$this->table])) {
             $this->created_at = $timeStr;
         }
         if ($autoTimestamp && in_array('updated_at', $this->columns[$this->table])) {
@@ -147,14 +153,14 @@ class model
     
     public function update($autoTimestamp = true)
     {
-        if ($autoTimestamp && in_array('updated_at', getFieldnames())) {
+        if ($autoTimestamp && in_array('updated_at', $this->columns[$this->table])) {
             $this->updated_at = gmdate('Y-m-d H:i:s');
         }
         
         $set = $this->setString();
         $query = 'UPDATE ' . $this->table. ' SET ' . $set['sql'] . ' WHERE ' . $this->pk_column . ' = ? LIMIT 1';
         $set['params'][] = $this->{$this->pk_column};
-        $st = execute(
+        $st = $this->execute(
             $query,
             $set['params']
         );
@@ -178,7 +184,7 @@ class model
     
     public function save()
     {
-        if ($this->{$pk_column}) {
+        if ($this->{$this->pk_column}) {
             return $this->update();
         } else {
             return $this->insert();
@@ -189,7 +195,7 @@ class model
     {
         $fragments = array();
         $params = [];
-        foreach ($this->columns[$this->pk_column] as $field) {
+        foreach ($this->columns[$this->table] as $field) {
             if ($field == $this->pk_column) {
                 continue;
             }
