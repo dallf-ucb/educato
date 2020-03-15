@@ -2,18 +2,12 @@
 class controller
 {
     var $vars = [];
-    var $layout = "";
-    var $body = "";
+    var $layout = "default";
     var $model = null;
 
-    function set($d)
+    function set($data)
     {
-        $this->vars = array_merge($this->vars, $d);
-    }
-
-    function replace($buffer)
-    {
-        return (str_replace("[BODY]", $this->body, $buffer));
+        $this->vars = array_merge($this->vars, $data);
     }
 
     function render()
@@ -22,19 +16,28 @@ class controller
         ob_start();
         $filename = debug_backtrace()[1]['function'];
         require(ROOT . "views/" . get_class($this) . '/' . $filename . '.php');
-        //echo ROOT . "views/" . get_class($this) . '/' . $filename . '.php';
 
-        $this->body = ob_get_clean();
+        $body = ob_get_clean();
 
         if ($this->layout == false)
         {
-            echo $this->body;
+            echo $body;
         }
         else
         {
-            ob_start("replace");
+            ob_start();
             require(ROOT . "views/layouts/" . $this->layout . '.php');
-            echo ob_get_clean();
+            $tmpl = ob_get_clean();
+            echo str_replace("[BODY]", $body, $tmpl);
+        }
+    }
+
+    function loadm($name) {
+        $model = ROOT . 'models/m_' . $name . '.php';
+        if (file_exists($model)) {
+            require($model);
+            $model = 'm_' . $name;
+            $controller->$name = new $model();
         }
     }
 }

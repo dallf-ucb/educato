@@ -26,8 +26,7 @@ class home extends controller {
         $model->url = 'Test 2';
         $model->copyright = 'Test 2';
         $model->save();//Insert
-        echo $this->model->id;
-        echo "<br>";
+        $id = $this->model->id;
         $model->id = 3;
         $model->sitio = 'Test 3';
         $model->tema = 'Test 3';
@@ -36,19 +35,13 @@ class home extends controller {
         $model->save();//Update
         $model->id = 4;
         $model->delete();
-        echo $this->model->deleteAllWhere(' id > 5 ');
-        echo "<br>";
-        echo $this->model->count();
-        echo "<br>";
-        echo $this->model->countAllWhere(' id > 0 ');
-        echo "<br>";
-        echo json_encode($this->model->fetchWhere(' id > 0 '));
-        echo "<br>";
-        echo json_encode($this->model->fetchPagedWhere(' id > 0 '));
-        echo "<br>";
-        echo json_encode($this->model->fetchOneWhere(' id > 0 '));
-        echo "<br>";
-        
+        $this->model->deleteAllWhere(' id > 5 ');
+        $this->model->count();
+        $this->model->countAllWhere(' id > 0 ');
+        $where = json_encode($this->model->fetchWhere(' id > 0 '));
+        $paged = json_encode($this->model->fetchPagedWhere(' id > 0 '));
+        $one = json_encode($this->model->fetchOneWhere(' id > 0 '));
+        $this->set(array('id' => $id, 'where' => $where, 'paged' => $paged, 'one' => $one));
         $this->render();
     }
 
