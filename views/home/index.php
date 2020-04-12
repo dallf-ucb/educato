@@ -1,3 +1,16 @@
+<?php
+/**
+ * Vista de inicio y bienvenida al sitio
+ *
+ * PHP version 7
+ *
+ * @category PHP_MVC
+ * @package  App
+ * @author   Daniel Llano <daniel.llano@outlook.com>
+ * @license  licence.txt GNU GPLv3
+ * @link     https://github.com/dallf-ucb/educato/views/auth/login.php
+ */
+?>
 <h1>Algunos datos de test: </h1>
 <table class="table table-striped table-responsive">
     <tr>

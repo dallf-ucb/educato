@@ -1,6 +1,6 @@
 <?php
 /**
- * Controller clase padre de todos los controladores
+ * Clase base de todos los controladores para web API
  *
  * Encargado de definir las operaciones básicas disponibles para cada controlador
  *
@@ -10,11 +10,11 @@
  * @package  App
  * @author   Daniel Llano <daniel.llano@outlook.com>
  * @license  licence.txt GNU GPLv3
- * @link     https://github.com/dallf-ucb/educato/app/controller.php
+ * @link     https://github.com/dallf-ucb/educato/api/base.php
  */
 
  /**
-  * Controller clase padre de todos los controladores
+  * Clase base de todos los controladores para web API
   *
   * Encargado de definir las operaciones básicas disponibles para cada controlador
   *
@@ -24,41 +24,21 @@
   * @package  App
   * @author   Daniel Llano <daniel.llano@outlook.com>
   * @license  licence.txt GNU GPLv3
-  * @link     https://github.com/dallf-ucb/educato/app/controller.php
+  * @link     https://github.com/dallf-ucb/educato/api/base.php
   */
-class Controller
+class Base
 {
-    public $layout = "default";
     public $model = null;
     /**
-     * Dibuja una vista como respuesta a una llamada a un controlador
+     * Imprime la salida JSON de un método controlador de Web API
      *
-     * @param array $vars Conjunto de varibles que se van a pasar a la vista
+     * @param object $output Objeto a codificar usando JSON
      *
      * @return void
      */
-    public function render($vars = array())
+    public function render($output)
     {
-        extract($vars);
-        ob_start();
-        $filename = debug_backtrace()[1]["function"];
-        $folder = lcfirst(get_class($this));
-        $view = ROOT . "views/" . $folder . "/" . $filename . ".php";
-        if (file_exists($view)) {
-            include $view;
-        } else {
-            echo "Error: view not found.";
-        }
-        $body = ob_get_clean();
-
-        if ($this->layout == false) {
-            echo $body;
-        } else {
-            ob_start();
-            include ROOT . "views/layouts/" . $this->layout . ".php";
-            $tmpl = ob_get_clean();
-            echo str_replace("[BODY]", $body, $tmpl);
-        }
+        echo json_encode($output, JSON_NUMERIC_CHECK);
     }
 
     /**
@@ -79,5 +59,19 @@ class Controller
             $model = "M" . $name;
             $this->$name = new $model();
         }
+    }
+
+    /**
+     * Imprime la salida JSON de error cuando un controlador de Web API no existe
+     *
+     * @param string $controller Controlador que produjo el error
+     *
+     * @return void
+     */
+    public function error($controller)
+    {
+        echo json_encode(
+            array("Error" => "no_controller" , "Controller" => $controller)
+        );
     }
 }

@@ -17,6 +17,12 @@
             "program": "${file}",
             "cwd": "${fileDirname}",
             "port": 9000
+        },
+        {
+            "editor.defaultFormatter": "esbenp.prettier-vscode",
+            "[javascript]": {
+              "editor.defaultFormatter": "esbenp.prettier-vscode"
+            }
         }
     ]
 }
