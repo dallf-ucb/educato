@@ -1,7 +1,6 @@
 # Educato
-# Web CRUD and Console CRUD for simple table of Students
 
-Example of ASP.NET Web and Console applications for do all CRUD operations on the Student table, which has the Student Type (Kinder, Elementary, High, and University), Student Name, Gender (Male, Female), and Timestamp of last update in the system.
+Example of PHP Web and Web API applications for do all CRUD operations on the Student table, which has the Student Type (Kinder, Elementary, High, and University), Student Name, Gender (Male, Female), and Timestamp of last update in the system.
 
 ## Getting Started
 
