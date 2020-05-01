@@ -27,7 +27,40 @@ class Musuario extends Model
     public $id;
     public $nombre;
     public $clave;
+    public $id_rol;
     public $rol;
+
+    /**
+     * Obtiene la instancia de usuario a validar obteniendolo por nombre y clave
+     *
+     * @param string $user Nombre del usuario a validar 
+     * @param string $pwd  Clave del usuario a validar encriptado usando SHA1
+     *
+     * @return Musuario una instancia del modelo usuario validado 
+     *                  o null si no se encuentra 
+     */
+    public function fetchForValidation($user, $pwd)
+    {
+        $sql = "SELECT id, u.nombre, clave, id_rol, r.nombre as rol  
+            FROM usuario u join ROL r on 
+                u.id_rol = r.id
+            WHERE nombre = ? and clave = ? LIMIT 1";
+        $st = $this->execute($sql, array($user, $pwd));
+        $st->setFetchMode(\PDO::FETCH_ASSOC);
+        $row = $st->fetch();
+        if ($row) {
+            $instance = new Musuario();
+            $instance->id = $row["id"];
+            $instance->nombre = $row["nombre"];
+            $instance->clave = $row["clave"];
+            $instance->id_rol = $row["id_rol"];
+            $instance->rol = $row["rol"];
+            return $instance;
+        } else {
+            return null;
+        }
+        return $results;
+    }
 
     /**
      * Actualiza los datos de un usuario sin cambiar la clave

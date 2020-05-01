@@ -23,8 +23,9 @@ function startSes()
 
 /**
  * Verifica si hay un usuario logueado y si no ha transcurrido más de 30 minutos
- * desde la última acción que realizo en la página, en caso que ya haya transcurrido
- * ese tiempo se cierra la sesión y se pide que el usuario ingrese de nuevo
+ * desde la última acción que realizo en la página, en caso que ya haya 
+ * transcurrido ese tiempo se cierra la sesión y se pide que el usuario 
+ * ingrese de nuevo
  *
  * @return bool Valor lógico indicando si un usuario esta logueado
  */

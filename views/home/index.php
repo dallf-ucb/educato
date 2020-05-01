@@ -11,40 +11,9 @@
  * @link     https://github.com/dallf-ucb/educato/views/auth/login.php
  */
 ?>
-<h1>Algunos datos de test: </h1>
-<table class="table table-striped table-responsive">
-    <tr>
-        <td>Ultimo Id insertado
-        </td>
-        <td>
-            <?php echo $id; ?>
-        </td>
-    </tr>
-    <tr>
-        <td>JSON datos filtrados
-        </td>
-        <td>
-            <pre>
-            <?php echo $where; ?>
-        </pre>
-        </td>
-    </tr>
-    <tr>
-        <td>JSON datos paginados
-        </td>
-        <td>
-            <pre>
-            <?php echo $paged; ?>
-        </pre>
-        </td>
-    </tr>
-    <tr>
-        <td>JSON una sola fila filtrada
-        </td>
-        <td>
-            <pre>
-            <?php echo $one; ?>
-        </pre>
-        </td>
-    </tr>
-</table>
+<?php if (logged()) { ?>
+<h1>Bienvenido <?php echo getSes("username") ?>, ingrese a las diferentes opciones usando el men&uacute;</h1>
+<?php } else { ?>
+<h3>Bienvenido ingrese usando la opci&oacute;n de ingresar del men&uacute; o usando el siguiente bot&oacute;n </h3>
+<a href="<?php echo baseUrl(); ?>auth/login" class="btn btn-primary btn-lg">Ingresar</a>
+<?php } ?>

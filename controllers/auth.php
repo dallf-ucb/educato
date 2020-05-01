@@ -90,14 +90,14 @@ class Auth extends Controller
      */
     public function validate()
     {
-        $usuario = $this->usuario->fetchOneWhere(
-            " nombre = ? and clave = ? ",
-            array($_POST["nombre"],
-            sha1($_POST["clave"]))
+        $usuario = $this->usuario->fetchForValidation(
+            $_POST["nombre"],
+            sha1($_POST["clave"])
         );
         if ($usuario != null) {
+            setSes("id", $usuario->id);
             setSes("username", $usuario->nombre);
-            setSes("role", $usuario->rol);
+            setSes("id_rol", $usuario->id_rol);
             setSes("token");
             $url = getSes("url");
             if (!empty($url)) {

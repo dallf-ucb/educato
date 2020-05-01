@@ -1,6 +1,6 @@
 <?php
 /**
- * Modelo home contiene el mapeo de campos de la table home de la base de datos
+ * Modelo menu contiene el mapeo de campos de la table menu de la base de datos
  *
  * PHP version 7
  *
@@ -12,7 +12,7 @@
  */
 
 /**
- * Modelo home contiene el mapeo de campos de la tabla home de la base de datos
+ * Modelo menu contiene el mapeo de campos de la table menu de la base de datos
  *
  * PHP version 7
  *
@@ -22,11 +22,13 @@
  * @license  licence.txt GNU GPLv3
  * @link     https://github.com/dallf-ucb/educato/models/mhome.php
  */
-class Mhome extends Model
+class Mmenu extends Model
 {
     public $id;
-    public $sitio;
-    public $tema;
-    public $url;
-    public $copyright;
+    public $texto;
+    public $tipo;
+    public $href;
+    public $html_id;
+    public $id_rol;
+    public $id_menu;
 }
